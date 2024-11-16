@@ -2,61 +2,124 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import logo from '@/assets/icons/logo.png';
 import { Link } from "expo-router";
 import { format } from 'date-fns'
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import SubscribeModal from "@/components/SubscribeModal";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
-import Animated, { FadeInDown, FadeInLeft } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeInLeft, ZoomIn } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { size } from "@/constants/size";
-
+import { Colors } from "@/constants/colors"
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
+
+const initialWords = [
+  'SOLVE',
+  'FRESH',
+  'BASIC',
+  'WORDS',
+  'DAILY'
+]
+
 export default function Index() {
 
   const subscribeModalRef = useRef<BottomSheetModal>(null)
+  const [rows, setRows] = useState<string[][]>(new Array(5).fill(new Array(5).fill("")))
+
   const { signOut } = useAuth()
   const handleSubscribeModalPress = useCallback(() => {
     subscribeModalRef.current?.present();
   }, []);
 
+  useEffect(() => {
+    const newRows = [...rows.map(row => [...row])]
+    initialWords.forEach((word, wordIndex) => {
+      const letter = word.split('');
+      letter.forEach((letter, letterIdx) => {
+        newRows[wordIndex][letterIdx] = letter
+      })
+    })
+    setRows(newRows)
+  }, [])
+
+
+  const getBackgroundColor = (rowIndex: number, cellIndex: number) => {
+    const size = initialWords.length
+    if (rowIndex === 4 || rowIndex === 2 && cellIndex === 1) {
+      return Colors.green
+    } else if (rowIndex === 0 && cellIndex === 2 || rowIndex === 2 && cellIndex === 3 || rowIndex === 3 && cellIndex === 3) {
+      return Colors.yellow
+    }
+    return Colors.grey
+    // if (initialWords[size - 1])
+  }
   return (
     <View style={styles.container}>
-
       <SubscribeModal ref={subscribeModalRef} />
       <LinearGradient colors={["#09281D", "#0C3E2D", "#155A40", "#166248"]} style={{ height: size.HEIGHT }} className="absolute left-0 right-0 bottom-0 top-0">
-        <Animated.View style={styles.header} entering={FadeInDown}>
-          <Image source={logo} className="w-20 h-20" />
-          <Text className="mt-2 text-white" style={styles.title} >Wordle</Text>
-          <Text style={styles.text}>Get chances to guess a 5-letter word</Text>
-        </Animated.View>
+        <View className="items-center gap-10 mt-24">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-4xl">WORDLE</Text>
+          <View className="items-center">
+            {
+              rows.map((row, rowIndex) => (
+                <Animated.View className="flex-row gap-5" key={`row-${rowIndex}`}>
+                  {
+                    row.map((cell, cellIndex) => (
+                      <Animated.View
+                        key={`cell-${rowIndex}-${cellIndex}`}
+                        entering={ZoomIn.delay(50 * cellIndex)}
+                        style={
+                          [
+                            {
+                              width: size.WIDTH / 7, height: size.WIDTH / 7,
+                              backgroundColor: getBackgroundColor(rowIndex, cellIndex)
+                            },
+                          ]
+                        }
+                        className="rounded-lg gap-4 justify-center mb-4"
+                      >
+                        <Text style={{ fontFamily: "Poppins_600SemiBold" }} className="text-3xl text-center text-white uppercase">{cell}</Text>
+                      </Animated.View>
+                    ))
+                  }
+                </Animated.View>
+              ))
+            }
+          </View>
 
-        <View style={styles.menu}>
-          <Link href={"/game"} style={[styles.btn, { backgroundColor: "#000" }]} asChild>
-            <AnimatedTouchableOpacity entering={FadeInLeft}>
-              <Text style={[styles.btnText, styles.playBtnText]}>Play</Text>
-            </AnimatedTouchableOpacity>
-          </Link>
-          <SignedOut>
-            <Link href={"/login"} asChild>
-              <AnimatedTouchableOpacity entering={FadeInLeft} style={styles.btn}>
-                <Text style={styles.btnText}>Login</Text>
+          <View className="gap-4">
+            <LinearGradient style={{ width: size.WIDTH - 40, borderRadius: 30, paddingVertical: 4, alignItems: "center" }} colors={[Colors.greenGrad1, Colors.greenGrad2]}>
+              <Link href={"/game"} asChild>
+                <AnimatedTouchableOpacity entering={FadeInLeft} style={styles.btn}>
+                  <Text style={{ fontFamily: "Poppins_500Medium" }} className="text-white text-2xl">Play</Text>
+                </AnimatedTouchableOpacity>
+              </Link>
+            </LinearGradient>
+
+            <SignedIn>
+              <LinearGradient style={{ width: size.WIDTH - 40, borderRadius: 30, paddingVertical: 4, alignItems: "center" }} colors={[Colors.greyGrad1, Colors.greyGrad2]}>
+                <AnimatedTouchableOpacity onPress={() => signOut()} entering={FadeInLeft} style={styles.btn}>
+                  <Text style={{ fontFamily: "Poppins_500Medium" }} className="text-white text-2xl">Signout</Text>
+                </AnimatedTouchableOpacity>
+              </LinearGradient>
+            </SignedIn>
+
+            <SignedOut>
+              <LinearGradient style={{ width: size.WIDTH - 40, borderRadius: 30, paddingVertical: 4, alignItems: "center" }} colors={[Colors.greyGrad1, Colors.greyGrad2]}>
+                <Link href={"/login"} asChild>
+                  <AnimatedTouchableOpacity entering={FadeInLeft} style={styles.btn}>
+                    <Text style={{ fontFamily: "Poppins_500Medium" }} className="text-white text-2xl">Login</Text>
+                  </AnimatedTouchableOpacity>
+                </Link>
+              </LinearGradient>
+            </SignedOut>
+
+            <LinearGradient style={{ width: size.WIDTH - 40, borderRadius: 30, paddingVertical: 4, alignItems: "center" }} colors={[Colors.whiteGrad1, Colors.whiteGrad2]}>
+              <AnimatedTouchableOpacity onPress={handleSubscribeModalPress} entering={FadeInLeft} style={styles.btn}>
+                <Text style={{ fontFamily: "Poppins_500Medium", color: Colors.green }} className="text-2xl">Subscribe</Text>
               </AnimatedTouchableOpacity>
-            </Link>
-          </SignedOut>
-
-          <SignedIn>
-            <AnimatedTouchableOpacity entering={FadeInLeft.delay(100)} onPress={() => signOut()} style={styles.btn}>
-              <Text style={styles.btnText}>Signout</Text>
-            </AnimatedTouchableOpacity>
-          </SignedIn>
-          <AnimatedTouchableOpacity entering={FadeInLeft.delay(200)} onPress={handleSubscribeModalPress} style={styles.btn}>
-            <Text style={styles.btnText}>Subscribe</Text>
-          </AnimatedTouchableOpacity>
+            </LinearGradient>
+          </View>
         </View>
-
-        <Animated.View entering={FadeInLeft.delay(300)} className="py-6">
-          <Text style={{ fontFamily: "Poppins_600SemiBold" }} className="text-lg">{format(new Date(), "PPP")}</Text>
-        </Animated.View>
       </LinearGradient>
     </View>
   );
@@ -69,6 +132,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 24,
     paddingHorizontal: 20,
+    // paddingVertical: 20
   },
   logo: {
     width: 40,
@@ -95,8 +159,6 @@ const styles = StyleSheet.create({
   },
   footer: {},
   btn: {
-    borderWidth: 1,
-    borderColor: "black",
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 14,
