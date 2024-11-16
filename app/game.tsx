@@ -12,10 +12,8 @@ import { size } from "@/constants/size"
 
 const ROWS = 6
 const Page = () => {
-
-    const [word, setword] = useState(words[Math.floor(Math.random()) * words.length])
-    console.log(word)
-    // const [word, setWord] = useState("ritik")
+    console.log(Math.floor(Math.random() * words.length))
+    const [word, setword] = useState(words[Math.floor(Math.random() * words.length)])
     const [rows, setRows] = useState<string[][]>(new Array(ROWS).fill(new Array(5).fill('')))
     const [curRow, setCurRow] = useState(0)
     const [curCol, _setCurCol] = useState(0)

@@ -56,7 +56,7 @@ export default function Index() {
     <View style={styles.container}>
       <SubscribeModal ref={subscribeModalRef} />
       <LinearGradient colors={["#09281D", "#0C3E2D", "#155A40", "#166248"]} style={{ height: size.HEIGHT }} className="absolute left-0 right-0 bottom-0 top-0">
-        <View className="items-center gap-10 mt-24">
+        <View className="items-center gap-10 mt-16">
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-4xl">WORDLE</Text>
           <View className="items-center">
             {
